@@ -1,0 +1,20 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="MaterialDrawerTheme.TranslucentStatus">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:actionModeBackground">@color/colorPrimaryDark</item>
+        <item name="android:actionModeSplitBackground">@color/colorAccentDark</item>
+    </style>
+
+    <style name="AppTheme.WithNavi" parent="@style/AppTheme"/>
+
+    <style name="AppTheme.FullScreen">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+</resources>

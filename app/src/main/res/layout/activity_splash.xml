@@ -1,0 +1,22 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@drawable/hairline"
+    android:gravity="center">
+
+    <ImageView
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/keep_calm"
+        android:layout_marginBottom="40dp" />
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/copyright"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>

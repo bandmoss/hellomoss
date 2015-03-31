@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/header"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/appbar_x3">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/appbar_x3"
+        android:src="@drawable/hairline"
+        android:scaleType="centerCrop"/>
+
+    <RelativeLayout
+        android:id="@+id/profile_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/keyline_first"
+        android:paddingRight="@dimen/keyline_third"
+        android:paddingTop="@dimen/keyline_first">
+
+        <TextView
+            android:id="@+id/profile_email_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingLeft="@dimen/keyline_second"
+            android:singleLine="true"
+            android:text="gildong.hong@gmail.com"
+            android:textColor="@color/white_alpha_54"
+            android:textSize="@dimen/content_cpation_12sp" />
+
+        <TextView
+            android:id="@+id/profile_name_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/profile_email_text"
+            android:layout_alignParentLeft="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingLeft="@dimen/keyline_second"
+            android:singleLine="true"
+            android:text="Hong Gil Dong"
+            android:textColor="@color/white_alpha_87"
+            android:textSize="@dimen/content_body_14sp" />
+
+        <com.bandmoss.hellomoss.widget.CircleImageView
+            android:id="@+id/profile_image"
+            android:layout_width="@dimen/navdrawer_profile_image_size"
+            android:layout_height="@dimen/navdrawer_profile_image_size"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="@dimen/keyline_first"
+            android:scaleType="centerInside"
+            android:src="@drawable/person_image_empty" />
+
+    </RelativeLayout>
+</FrameLayout>

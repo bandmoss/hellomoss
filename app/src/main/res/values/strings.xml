@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hello MOSS</string>
+    <string name="action_write">글쓰기</string>
+    <string name="action_write_alert_kitkat">사진 업로드를 이용하기 위해서는 외부 브라우저를 이용해야 합니다.\n\n외부 브라우저로 이동하시겠습니까?</string>
+    <string name="action_download">사진 저장</string>
+    <string name="action_download_confirm">사진을 저장하시겠습니까?</string>
+    <string name="not_signed_in">Not signed in</string>
+
+    <string name="title_home">Main</string>
+    <string name="title_notice">Notice</string>
+    <string name="title_freeboard">Free board</string>
+    <string name="title_memberboard">PDS</string>
+    <string name="title_gallery">Gallery</string>
+    <string name="title_video">Video</string>
+    <string name="title_timetable">Timetable</string>
+    <string name="title_logout">Log out</string>
+</resources>
