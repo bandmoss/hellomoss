@@ -1,7 +1,18 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 
 repositories {
     MavenArtifact
+    maven { url 'https://maven.fabric.io/public' }
 }
 
 
@@ -13,8 +24,8 @@ android {
         applicationId "com.bandmoss.hellomoss"
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.01"
     }
     buildTypes {
         release {
@@ -43,5 +54,8 @@ dependencies {
     compile 'com.afollestad:material-dialogs:0.6.6.2'
     compile('com.mikepenz.materialdrawer:library:1.0.2@aar') {
         transitive = true
+    }
+    compile('com.crashlytics.sdk.android:crashlytics:2.2.2@aar') {
+        transitive = true;
     }
 }

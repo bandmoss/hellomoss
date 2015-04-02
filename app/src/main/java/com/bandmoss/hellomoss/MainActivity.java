@@ -153,7 +153,7 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
                     .withHeader(R.layout.header)
                     .withActionBarDrawerToggle(true)
                     .addDrawerItems(
-                            AppConstants.DRAWER_ITEM_HOME,
+                            //AppConstants.DRAWER_ITEM_HOME,
                             AppConstants.DRAWER_ITEM_NOTICE,
                             AppConstants.DRAWER_ITEM_FREEBOARD,
                             AppConstants.DRAWER_ITEM_MEMBERBOARD,
@@ -167,6 +167,32 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
                     .withSavedInstance(savedInstanceState)
                     .build();
         }
+
+        View logo = mNavigationDrawer.getHeader().findViewById(R.id.logo);
+        View profileIcon = mNavigationDrawer.getHeader().findViewById(R.id.profile_image);
+
+        logo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mWebViewFragment != null) {
+                    mWebViewFragment.navigateTo(AppConstants.HOME_URL);
+                }
+                if(mNavigationDrawer.isDrawerOpen()) {
+                    mNavigationDrawer.closeDrawer();
+                }
+            }
+        });
+        profileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mWebViewFragment != null) {
+                    mWebViewFragment.navigateTo(AppConstants.MEMBERINFO_URL);
+                }
+                if(mNavigationDrawer.isDrawerOpen()) {
+                    mNavigationDrawer.closeDrawer();
+                }
+            }
+        });
         onLoginStateChanged(false);
     }
 
@@ -258,17 +284,6 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
                                 username.setText(result.getNickname());
                                 email.setText("");
 
-                                profileIcon.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        if(mWebViewFragment != null) {
-                                            mWebViewFragment.navigateTo(AppConstants.MEMBERINFO_URL);
-                                        }
-                                        if(mNavigationDrawer.isDrawerOpen()) {
-                                            mNavigationDrawer.closeDrawer();
-                                        }
-                                    }
-                                });
                                 mLogoutDrawerView.setVisibility(View.VISIBLE);
                             }
                         });
@@ -290,7 +305,6 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
                     username.setText(getString(R.string.not_signed_in));
                     email.setText("");
 
-                    profileIcon.setOnClickListener(null);
                     mLogoutDrawerView.setVisibility(View.GONE);
                 }
             });
