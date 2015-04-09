@@ -20,6 +20,7 @@ import com.bandmoss.hellomoss.util.Callback;
 import com.bandmoss.hellomoss.util.Util;
 import com.bandmoss.hellomoss.widget.ScrollObservableWebview;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.Tagable;
@@ -37,6 +38,8 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
     private View mLogoutDrawerView;
     private Drawer.Result mNavigationDrawer;
     private ScrollObservableWebview.OnScrollListener mScrollListener;
+
+    private boolean isLoggedIn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +138,9 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
             LinearLayout footer = new LinearLayout(this);
             footer.setOrientation(LinearLayout.VERTICAL);
             footer.setShowDividers(LinearLayout.SHOW_DIVIDER_NONE);
+            if (Util.hasNavigationBar(this)) {
+                footer.setPadding(0, 0, 0, Util.getNavigationBarHeight(this));
+            }
 
             mLogoutDrawerView = AppConstants.DRAWER_ITEM_LOGOUT.convertView(getLayoutInflater(), null, footer);
             mLogoutDrawerView.setOnClickListener(new View.OnClickListener() {
@@ -174,10 +180,10 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
         logo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mWebViewFragment != null) {
-                    mWebViewFragment.navigateTo(AppConstants.HOME_URL);
+                if (mWebViewFragment != null) {
+                    mWebViewFragment.navigateTo(isLoggedIn ? AppConstants.HOME_URL : AppConstants.BASE_URL);
                 }
-                if(mNavigationDrawer.isDrawerOpen()) {
+                if (mNavigationDrawer.isDrawerOpen()) {
                     mNavigationDrawer.closeDrawer();
                 }
             }
@@ -185,10 +191,10 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
         profileIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mWebViewFragment != null) {
+                if (mWebViewFragment != null) {
                     mWebViewFragment.navigateTo(AppConstants.MEMBERINFO_URL);
                 }
-                if(mNavigationDrawer.isDrawerOpen()) {
+                if (mNavigationDrawer.isDrawerOpen()) {
                     mNavigationDrawer.closeDrawer();
                 }
             }
@@ -267,6 +273,8 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
 
     @Override
     public void onLoginStateChanged(final boolean isLoggedIn) {
+        this.isLoggedIn = isLoggedIn;
+
         if (isLoggedIn) {
             Util.requestUserInfo(new Callback<UserInfo>() {
                 @Override
@@ -275,16 +283,22 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                View header = mNavigationDrawer.getHeader();
-                                ImageView profileIcon = (ImageView) header.findViewById(R.id.profile_image);
-                                TextView username = (TextView) header.findViewById(R.id.profile_name_text);
-                                TextView email = (TextView) header.findViewById(R.id.profile_email_text);
+                                if (!isFinishing()) {
+                                    View header = mNavigationDrawer.getHeader();
+                                    ImageView profileIcon = (ImageView) header.findViewById(R.id.profile_image);
+                                    TextView username = (TextView) header.findViewById(R.id.profile_name_text);
+                                    TextView email = (TextView) header.findViewById(R.id.profile_email_text);
 
-                                Glide.with(MainActivity.this).load(result.getImageUrl()).crossFade().into(profileIcon);
-                                username.setText(result.getNickname());
-                                email.setText("");
+                                    Glide.with(MainActivity.this)
+                                            .load(result.getImageUrl())
+                                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                            .crossFade()
+                                            .into(profileIcon);
+                                    username.setText(result.getNickname());
+                                    email.setText("");
 
-                                mLogoutDrawerView.setVisibility(View.VISIBLE);
+                                    mLogoutDrawerView.setVisibility(View.VISIBLE);
+                                }
                             }
                         });
                     } else {
@@ -296,16 +310,22 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    View header = mNavigationDrawer.getHeader();
-                    ImageView profileIcon = (ImageView) header.findViewById(R.id.profile_image);
-                    TextView username = (TextView) header.findViewById(R.id.profile_name_text);
-                    TextView email = (TextView) header.findViewById(R.id.profile_email_text);
+                    if (!isFinishing()) {
+                        View header = mNavigationDrawer.getHeader();
+                        ImageView profileIcon = (ImageView) header.findViewById(R.id.profile_image);
+                        TextView username = (TextView) header.findViewById(R.id.profile_name_text);
+                        TextView email = (TextView) header.findViewById(R.id.profile_email_text);
 
-                    profileIcon.setImageResource(R.drawable.person_image_empty);
-                    username.setText(getString(R.string.not_signed_in));
-                    email.setText("");
+                        profileIcon.setImageResource(R.drawable.person_image_empty);
+                        username.setText(getString(R.string.not_signed_in));
+                        email.setText("");
 
-                    mLogoutDrawerView.setVisibility(View.GONE);
+                        mLogoutDrawerView.setVisibility(View.GONE);
+
+                        if(mWebViewFragment != null) {
+                            mWebViewFragment.navigateTo(AppConstants.BASE_URL);
+                        }
+                    }
                 }
             });
         }

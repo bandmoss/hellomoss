@@ -17,6 +17,9 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
+import android.view.ViewConfiguration;
 
 import com.bandmoss.hellomoss.R;
 import com.bandmoss.hellomoss.model.UserInfo;
@@ -106,9 +109,26 @@ public class Util {
     }
 
     public static boolean hasNavigationBar(Context context) {
-        Resources resources = context.getResources();
-        int id = resources.getIdentifier("config_showNavigationBar", "bool", "android");
-        return id > 0 && resources.getBoolean(id);
+        boolean result = false;
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            result = !ViewConfiguration.get(context).hasPermanentMenuKey();
+
+        } else {
+            Resources resources = context.getResources();
+            int id = resources.getIdentifier("config_showNavigationBar", "bool", "android");
+            if (id > 0) {
+                result = resources.getBoolean(id);
+            }
+
+            if (!result) {
+                // Check for keys
+                boolean hasMenuKey = ViewConfiguration.get(context).hasPermanentMenuKey();
+                boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
+                result = !hasMenuKey || !hasBackKey;
+            }
+        }
+        return result;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -149,7 +169,7 @@ public class Util {
             @Override
             public void callback(String result) {
                 UserInfo userInfo = null;
-                if(result != null) {
+                if (result != null) {
 
                     String nickname = null;
                     String imageUrl = null;
@@ -166,12 +186,12 @@ public class Util {
                         imageUrl = matcher.group();
                     }
 
-                    if(nickname != null || imageUrl != null) {
+                    if (nickname != null || imageUrl != null) {
                         userInfo = new UserInfo(nickname, imageUrl);
                     }
                 }
 
-                if(callback != null) {
+                if (callback != null) {
                     callback.callback(userInfo);
                 }
             }

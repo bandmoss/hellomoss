@@ -56,7 +56,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
     public static final int FILECHOOSER_LOLLIPOP_REQUEST_CODE = 1;
     public static final int FILECHOOSER_BEFORE_KITKAT_REQUEST_CODE = 2;
 
-    private static final String DEFAULT_URL = "http://bandmoss.com";
+    private static final String DEFAULT_URL = AppConstants.BASE_URL;
 
     // field for file handling
     private ValueCallback<Uri[]> mFilePathCallback;
@@ -204,9 +204,10 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                 }
             });
         }
+
         if(Util.hasNavigationBar(getActivity())) {
             int navbarHeight = Util.getNavigationBarHeight(getActivity());
-            if(navbarHeight > 0) {
+            if (navbarHeight > 0) {
                 RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) mFab.getLayoutParams();
                 layoutParams.bottomMargin += navbarHeight;
                 mFab.requestLayout();
@@ -436,7 +437,6 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
 
         webSettings.setAllowContentAccess(true);
         webSettings.setAllowFileAccess(true);
-        webSettings.setLoadWithOverviewMode(false);
 
         WebViewClient webViewClient = new XEWebViewClient();
         mWebView.setWebViewClient(webViewClient);
@@ -448,7 +448,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onReceivedTitle(WebView view, String title) {
                 super.onReceivedTitle(view, title);
-                if(mFragmentCallback != null && !title.contains("jpg") && !title.contains("png")) {
+                if(mFragmentCallback != null && !view.getUrl().contains("/attach/")) {
                     mFragmentCallback.onTitleChanged(title);
                 }
             }
@@ -509,8 +509,6 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
             }
 
             public void openFileChooser(ValueCallback<Uri> uploadMsg) {
-
-                Log.e(TAG, "openFileChooser 1");
                 mFilePathCallbackForCompat = uploadMsg;
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.addCategory(Intent.CATEGORY_OPENABLE);
@@ -521,7 +519,6 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
 
             // For Android 3.0+
             public void openFileChooser(ValueCallback uploadMsg, String acceptType) {
-                Log.e(TAG, "openFileChooser 2");
                 mFilePathCallbackForCompat = uploadMsg;
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.addCategory(Intent.CATEGORY_OPENABLE);
@@ -531,7 +528,6 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
 
             // For Android 4.1
             public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
-                Log.e(TAG, "openFileChooser 3");
                 mFilePathCallbackForCompat = uploadMsg;
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.addCategory(Intent.CATEGORY_OPENABLE);
@@ -599,6 +595,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
 
         @Override
         public void onPageFinished(final WebView view, final String url) {
+            if(!isAdded()) return;
 
             mCurrentUrl = url;
             mSwipeRefreshLayout.setRefreshing(false);
@@ -617,6 +614,9 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                 }, 200);
 
             } else {
+                //hide appstore button
+                view.loadUrl("javascript:jQuery(\"#app_store\").hide()");
+
                 //hide header
                 view.loadUrl("javascript:jQuery(\"#hd\").hide();");
                 view.loadUrl("javascript:jQuery(\".lo_head\").hide();");
@@ -632,6 +632,9 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                 //force remember (at login)
                 view.loadUrl("javascript:jQuery(\"input:checkbox[id='keepid']\").attr(\"checked\", true).parent().hide();");
                 view.loadUrl("javascript:jQuery(\"input:checkbox[id='keepid_opt']\").attr(\"checked\", true).parent().hide();");
+
+                //force hide write button
+                view.loadUrl("javascript:jQuery(\".write\").parent().hide()");
 
                 //add padding (status bar height)
                 if (topPadding < 0) {
