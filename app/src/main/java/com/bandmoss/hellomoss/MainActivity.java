@@ -2,6 +2,7 @@ package com.bandmoss.hellomoss;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -40,6 +41,8 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
     private ScrollObservableWebview.OnScrollListener mScrollListener;
 
     private boolean isLoggedIn = false;
+    private int mMinUpperSurfaceY = 0;
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +57,9 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
 
         // Init Drawer
         initNavigationDrawer(savedInstanceState);
+
+        // Init a handler running on UI thread
+        mHandler = new Handler();
     }
 
     private void initToolbar() {
@@ -83,28 +89,38 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
         mUpperSurface = findViewById(R.id.upper_surface);
         mScrollListener = new ScrollObservableWebview.OnScrollListener() {
 
-            private int minUpperSurfaceY;
-
             {
                 TypedValue tv = new TypedValue();
                 if (getTheme().resolveAttribute(R.attr.actionBarSize, tv, true)) {
-                    minUpperSurfaceY = -TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics()) - (int) (getResources().getDimension(R.dimen.tool_bar_top_padding) / getResources().getDisplayMetrics().density) - 100;
+                    mMinUpperSurfaceY = -TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics()) - (int) (getResources().getDimension(R.dimen.tool_bar_top_padding) / getResources().getDisplayMetrics().density) - 100;
                 } else {
-                    minUpperSurfaceY = 0;
+                    mMinUpperSurfaceY = 0;
                 }
             }
 
             @Override
             public void onScroll(int l, int t, int oldl, int oldt) {
-                final int offset = (int) ((t - oldt) * .66f);
+                final float offset = ((t - oldt) * .66f);
                 final float futureAppbarPosY = mUpperSurface.getY() - offset;
 
-                if (futureAppbarPosY <= minUpperSurfaceY) {
-                    mUpperSurface.setY(minUpperSurfaceY);
+                if (futureAppbarPosY <= mMinUpperSurfaceY) {
+                    mUpperSurface.setY(mMinUpperSurfaceY);
                 } else if (futureAppbarPosY >= 0) {
                     mUpperSurface.setY(0);
                 } else {
+                    mUpperSurface.animate().cancel();
                     mUpperSurface.setY(futureAppbarPosY);
+                    mHandler.removeCallbacksAndMessages(null);
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(offset < 0) {
+                                showToolbar();
+                            } else if(futureAppbarPosY <= mMinUpperSurfaceY * 0.66f) {
+                                hideToolbar();
+                            }
+                        }
+                    }, 300);
                 }
 
             }
@@ -202,6 +218,34 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
         onLoginStateChanged(false);
     }
 
+    public void hideToolbar() {
+        if (mUpperSurface != null) {
+            mUpperSurface.animate()
+                    .y(mMinUpperSurfaceY)
+                    .setDuration(300)
+                    .start();
+        }
+    }
+
+    public void showToolbar() {
+        if (mUpperSurface != null) {
+            mUpperSurface.animate()
+                    .y(0)
+                    .setDuration(300)
+                    .start();
+        }
+    }
+
+    public void toggleToolbar() {
+        if (mUpperSurface != null) {
+            if (mUpperSurface.getY() == 0) {
+                hideToolbar();
+            } else {
+                showToolbar();
+            }
+        }
+    }
+
     @Override
     public void onBackPressed() {
         // Close navigation drawer if opened
@@ -267,6 +311,7 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
         if (title == null) {
             title = getString(R.string.app_name);
         }
+        showToolbar();
         getSupportActionBar().setTitle(title);
         Util.setTaskDescription(this, title);
     }
@@ -283,6 +328,10 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                                    if (isDestroyed()) return;
+                                }
+
                                 if (!isFinishing()) {
                                     View header = mNavigationDrawer.getHeader();
                                     ImageView profileIcon = (ImageView) header.findViewById(R.id.profile_image);
@@ -310,6 +359,10 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                        if (isDestroyed()) return;
+                    }
+
                     if (!isFinishing()) {
                         View header = mNavigationDrawer.getHeader();
                         ImageView profileIcon = (ImageView) header.findViewById(R.id.profile_image);
@@ -322,13 +375,18 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
 
                         mLogoutDrawerView.setVisibility(View.GONE);
 
-                        if(mWebViewFragment != null) {
+                        if (mWebViewFragment != null) {
                             mWebViewFragment.navigateTo(AppConstants.BASE_URL);
                         }
                     }
                 }
             });
         }
+    }
+
+    @Override
+    public void onLoading(String url) {
+
     }
 
     @Override

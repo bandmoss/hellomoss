@@ -15,7 +15,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation"
+            android:configChanges="orientation|screenSize"
             android:theme="@style/AppTheme.WithNavi"
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:label="@string/app_name" >

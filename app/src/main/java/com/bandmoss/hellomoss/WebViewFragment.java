@@ -20,7 +20,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -28,6 +30,7 @@ import android.view.animation.AnticipateOvershootInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -77,6 +80,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
     private boolean isFabShowing = false;
     private boolean isFabHiding = false;
     private long downloadQueueId;
+    private boolean isWriting;
 
     public WebViewFragment() {
 
@@ -264,6 +268,17 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    public void toggleFab() {
+        if(mFab != null) {
+            if(isFabHiding || isFabShowing) return;
+            if(mFab.getAlpha() == 0.0f) {
+                showFab();
+            } else {
+                hideFab();
+            }
+        }
+    }
+
     public void setFabIcon(final FontAwesome.Icon icon) {
         mFab.post(new Runnable() {
             @Override
@@ -287,7 +302,41 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
 
     public boolean triggerGoBack() {
         if (mWebView != null && mWebView.canGoBack()) {
-            mWebView.goBack();
+            if(isWriting) {
+                new MaterialDialog.Builder(getActivity())
+                        .title(mWebView.getTitle())
+                        .content(R.string.action_exit_confirm)
+                        .positiveText(android.R.string.ok)
+                        .negativeText(android.R.string.no)
+                        .callback(new MaterialDialog.ButtonCallback() {
+                            @Override
+                            public void onPositive(MaterialDialog dialog) {
+                                isWriting = false;
+                                mWebView.goBack();
+                                mWebView.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if(mFragmentCallback != null) {
+                                            mFragmentCallback.onTitleChanged(mWebView.getTitle());
+                                            mFragmentCallback.onLoadingCompleted(mWebView.getUrl());
+                                        }
+                                    }
+                                }, 100);
+                            }
+                        })
+                        .show();
+            } else {
+                mWebView.goBack();
+                mWebView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mFragmentCallback != null) {
+                            mFragmentCallback.onTitleChanged(mWebView.getTitle());
+                            mFragmentCallback.onLoadingCompleted(mWebView.getUrl());
+                        }
+                    }
+                }, 100);
+            }
             return true;
         }
         return false;
@@ -311,7 +360,6 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                                         downloadQueueId = Util.requestDownload(getActivity(), tag);
                                     }
                                 })
-                                .build()
                                 .show();
                     }
                     return;
@@ -336,13 +384,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                                     public void onNegative(MaterialDialog dialog) {
                                         navigateTo(tag);
                                     }
-
-                                    @Override
-                                    public void onNeutral(MaterialDialog dialog) {
-                                        navigateTo(tag);
-                                    }
                                 })
-                                .build()
                                 .show();
                         return;
                     }
@@ -418,6 +460,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
         webSettings.setJavaScriptEnabled(true);
 
         // Use WideViewport and Zoom out if there is no viewport defined
+        webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
 
         // Enable pinch to zoom without the zoom buttons
@@ -451,6 +494,16 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                 if(mFragmentCallback != null && !view.getUrl().contains("/attach/")) {
                     mFragmentCallback.onTitleChanged(title);
                 }
+            }
+
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                return true;
+            }
+
+            @Override
+            public boolean onJsBeforeUnload(WebView view, String url, String message, JsResult result) {
+                return true;
             }
 
             @Override
@@ -536,7 +589,27 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
             }
 
         });
+        mWebView.setOnTouchListener(new View.OnTouchListener() {
 
+            GestureDetector gestureDetector = new GestureDetector(getActivity(), new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onSingleTapUp(MotionEvent motionEvent) {
+                    String url = mWebView.getUrl();
+                    if (url != null && url.contains("/attach/")) {
+                        Activity activity = getActivity();
+                        if (activity != null && activity instanceof MainActivity) {
+                            ((MainActivity) activity).toggleToolbar();
+                        }
+                    }
+                    return false;
+                }
+            });
+
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return gestureDetector.onTouchEvent(motionEvent);
+            }
+        });
     }
 
     private class XEWebViewClient extends WebViewClient implements HtmlJavascriptInterface {
@@ -580,6 +653,10 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
+            if(mFragmentCallback != null) {
+                mFragmentCallback.onLoading(url);
+            }
+            mSwipeRefreshLayout.setRefreshing(true);
             hideFab();
         }
 
@@ -633,8 +710,13 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                 view.loadUrl("javascript:jQuery(\"input:checkbox[id='keepid']\").attr(\"checked\", true).parent().hide();");
                 view.loadUrl("javascript:jQuery(\"input:checkbox[id='keepid_opt']\").attr(\"checked\", true).parent().hide();");
 
-                //force hide write button
+                //force hide unnecessary buttons
+                //view.loadUrl("javascript:{var edit = jQuery(\".rd_nav\")[0]; if(edit !== null) edit.remove()}");
                 view.loadUrl("javascript:jQuery(\".write\").parent().hide()");
+
+                //clear existing textarea input
+                view.loadUrl("javascript:jQuery(\".autogrow-textarea-mirror\").remove()");
+                view.loadUrl("javascript:jQuery(\"textarea\").val('')");
 
                 //add padding (status bar height)
                 if (topPadding < 0) {
@@ -655,7 +737,11 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                     if(Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
                         view.loadUrl("javascript:jQuery(\"#mUpload\").hide();");
                     }
+                    //hide temporary save button
+                    view.loadUrl("javascript:jQuery(\".bd_btn.temp\").hide()");
+
                     mSwipeRefreshLayout.setEnabled(false);
+                    isWriting = true;
                     mFab.setTag(null);
                     hideFab();
 
@@ -663,11 +749,15 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                     //get html of page
                     view.loadUrl("javascript:window.HTMLOUT.processHtml('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');");
                     mSwipeRefreshLayout.setEnabled(true);
+                    isWriting = false;
                 }
             }
 
             if (mFragmentCallback != null) {
                 mFragmentCallback.onLoadingCompleted(url);
+                if(!url.contains("/attach/")) {
+                    mFragmentCallback.onTitleChanged(view.getTitle());
+                }
             }
         }
     }
@@ -693,6 +783,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
 
     public interface FragmentCallback {
         public void onTitleChanged(String title);
+        public void onLoading(String url);
         public void onLoadingCompleted(String url);
         public void onLoginStateChanged(boolean isLoggedIn);
         public ScrollObservableWebview.OnScrollListener getOnScrollListener();

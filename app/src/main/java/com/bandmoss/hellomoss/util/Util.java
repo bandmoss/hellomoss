@@ -17,6 +17,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.text.TextUtils;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.ViewConfiguration;
@@ -109,34 +110,37 @@ public class Util {
     }
 
     public static boolean hasNavigationBar(Context context) {
-        boolean result = false;
+
+        // force disable on samsung devices
+        if(TextUtils.equals(Build.MANUFACTURER, "samsung")) {
+            return false;
+        }
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            result = !ViewConfiguration.get(context).hasPermanentMenuKey();
+            boolean hasMenuKey = ViewConfiguration.get(context).hasPermanentMenuKey();
+            return !hasMenuKey;
 
         } else {
             Resources resources = context.getResources();
             int id = resources.getIdentifier("config_showNavigationBar", "bool", "android");
             if (id > 0) {
-                result = resources.getBoolean(id);
-            }
+                return resources.getBoolean(id);
 
-            if (!result) {
-                // Check for keys
-                boolean hasMenuKey = ViewConfiguration.get(context).hasPermanentMenuKey();
+            } else {
                 boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
-                result = !hasMenuKey || !hasBackKey;
+                return !hasBackKey;
             }
         }
-        return result;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static void setTaskDescription(Activity activity, String label) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) try {
             int color = activity.getResources().getColor(R.color.colorPrimary);
-            Bitmap icon = BitmapFactory.decodeResource(activity.getResources(), R.mipmap.ic_launcher);
-            activity.setTaskDescription(new ActivityManager.TaskDescription(label, icon, color));
+            Bitmap icon = BitmapFactory.decodeResource(
+                    activity.getResources(), R.mipmap.ic_launcher);
+            activity.setTaskDescription(
+                    new ActivityManager.TaskDescription(label, icon, color));
         } catch (Exception ignored) {
 
         }

@@ -5,7 +5,10 @@
     <string name="action_write_alert_kitkat">사진 업로드를 이용하기 위해서는 외부 브라우저를 이용해야 합니다.\n\n외부 브라우저로 이동하시겠습니까?</string>
     <string name="action_download">사진 저장</string>
     <string name="action_download_confirm">사진을 저장하시겠습니까?</string>
-    <string name="not_signed_in">Not signed in</string>
+    <string name="action_exit">나가기</string>
+    <string name="action_exit_confirm">이 페이지에서 나가시겠습니까?</string>
+
+    <string name="not_signed_in">로그인되지 않음</string>
 
     <string name="title_home">Main</string>
     <string name="title_notice">Notice</string>
