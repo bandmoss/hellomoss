@@ -293,7 +293,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
             mWebView.post(new Runnable() {
                 @Override
                 public void run() {
-                    mSwipeRefreshLayout.setRefreshing(true);
+                    mWebView.stopLoading();
                     mWebView.loadUrl(url);
                 }
             });
@@ -325,14 +325,16 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
                             }
                         })
                         .show();
-            } else {
+            } else if (!mSwipeRefreshLayout.isRefreshing()) {
                 mWebView.goBack();
                 mWebView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         if(mFragmentCallback != null) {
-                            mFragmentCallback.onTitleChanged(mWebView.getTitle());
                             mFragmentCallback.onLoadingCompleted(mWebView.getUrl());
+                            if(!mWebView.getUrl().contains("/attach/")) {
+                                mFragmentCallback.onTitleChanged(mWebView.getTitle());
+                            }
                         }
                     }
                 }, 100);
@@ -497,12 +499,46 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
             }
 
             @Override
-            public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+            public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
+                new MaterialDialog.Builder(getActivity())
+                        .title(view.getTitle())
+                        .content(message)
+                        .positiveText(android.R.string.ok)
+                        .negativeText(android.R.string.no)
+                        .cancelable(false)
+                        .callback(new MaterialDialog.ButtonCallback() {
+                            @Override
+                            public void onPositive(MaterialDialog dialog) {
+                                result.confirm();
+                            }
+
+                            @Override
+                            public void onNegative(MaterialDialog dialog) {
+                                result.cancel();
+                            }
+                        }).show();
                 return true;
             }
 
             @Override
-            public boolean onJsBeforeUnload(WebView view, String url, String message, JsResult result) {
+            public boolean onJsBeforeUnload(final WebView view, String url, String message, final JsResult result) {
+                new MaterialDialog.Builder(getActivity())
+                        .title(view.getTitle())
+                        .content(R.string.action_exit_confirm)
+                        .positiveText(android.R.string.ok)
+                        .negativeText(android.R.string.no)
+                        .cancelable(false)
+                        .callback(new MaterialDialog.ButtonCallback() {
+                            @Override
+                            public void onPositive(MaterialDialog dialog) {
+                                result.confirm();
+                            }
+
+                            @Override
+                            public void onNegative(MaterialDialog dialog) {
+                                result.cancel();
+                            }
+                        }).show();
                 return true;
             }
 
@@ -712,7 +748,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
 
                 //force hide unnecessary buttons
                 //view.loadUrl("javascript:{var edit = jQuery(\".rd_nav\")[0]; if(edit !== null) edit.remove()}");
-                view.loadUrl("javascript:jQuery(\".write\").parent().hide()");
+                //view.loadUrl("javascript:jQuery(\".write\").parent().hide()");
 
                 //clear existing textarea input
                 view.loadUrl("javascript:jQuery(\".autogrow-textarea-mirror\").remove()");
