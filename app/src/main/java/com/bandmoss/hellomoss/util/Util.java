@@ -169,7 +169,7 @@ public class Util {
     }
 
     public static void requestUserInfo(final Callback<UserInfo> callback) {
-        HttpGetTask asyncTask = new HttpGetTask("http://bandmoss.com/xe/index.php?mid=memberinfo&module_srl=134267", new Callback<String>() {
+        HttpGetTask asyncTask = new HttpGetTask("http://bandmoss.com/xe/index.php?mid=memberinfo", new Callback<String>() {
             @Override
             public void callback(String result) {
                 UserInfo userInfo = null;
@@ -178,14 +178,14 @@ public class Util {
                     String nickname = null;
                     String imageUrl = null;
 
-                    Pattern pattern = Pattern.compile("\"id\\s*:\\s*.{2,5}\"");
+                    Pattern pattern = Pattern.compile("<strong>.*</strong>");
                     Matcher matcher = pattern.matcher(result);
                     if (matcher.find()) {
-                        nickname = matcher.group().replaceAll("[id :\"]", "");
-                    }
+                        nickname = matcher.group().replaceAll("<(/)*strong>", "");
+                }
 
-                    pattern = Pattern.compile("http:\\/\\/.*(.gif)|(.jpg)|(.png)");
-                    matcher = pattern.matcher(result);
+                pattern = Pattern.compile("http:\\/\\/.*image_mark.*(.gif)|(.jpg)|(.png)");
+                matcher = pattern.matcher(result);
                     if (matcher.find()) {
                         imageUrl = matcher.group();
                     }

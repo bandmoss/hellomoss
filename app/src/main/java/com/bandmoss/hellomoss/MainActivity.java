@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -324,6 +325,7 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
             Util.requestUserInfo(new Callback<UserInfo>() {
                 @Override
                 public void callback(final UserInfo result) {
+                    Log.d("requestUserInfo", "result: " + result);
                     if (result != null) {
                         runOnUiThread(new Runnable() {
                             @Override
@@ -340,6 +342,7 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
 
                                     Glide.with(MainActivity.this)
                                             .load(result.getImageUrl())
+                                            .error(R.drawable.person_image_empty)
                                             .diskCacheStrategy(DiskCacheStrategy.NONE)
                                             .crossFade()
                                             .into(profileIcon);
