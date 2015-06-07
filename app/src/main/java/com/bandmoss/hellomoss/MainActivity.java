@@ -82,7 +82,7 @@ public class MainActivity extends ActionBarActivity implements Drawer.OnDrawerIt
             titleTextView.setSelected(true);
             titleTextView.setMarqueeRepeatLimit(-1);
 
-        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+        } catch (Exception ignored) {
 
         }
 

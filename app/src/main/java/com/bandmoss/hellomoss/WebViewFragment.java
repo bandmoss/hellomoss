@@ -350,6 +350,7 @@ public class WebViewFragment extends Fragment implements View.OnClickListener {
             if (mFab.getTag() != null && mFab.getTag() instanceof String) {
                 final String tag = (String) mFab.getTag();
                 if (tag.contains("/attach/")) {
+                    Log.d("tag", "hello world");
                     if (Util.isDownloadManagerAvailable(getActivity())) {
                         new MaterialDialog.Builder(getActivity())
                                 .title(R.string.action_download)
