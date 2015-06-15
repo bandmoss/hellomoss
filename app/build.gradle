@@ -8,8 +8,8 @@ android {
         applicationId "com.bandmoss.hellomoss2"
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 8
-        versionName "1.07"
+        versionCode 9
+        versionName "1.08"
     }
     buildTypes {
         release {

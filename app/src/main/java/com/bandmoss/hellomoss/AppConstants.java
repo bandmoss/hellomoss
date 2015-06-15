@@ -9,7 +9,7 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 public class AppConstants {
 
     public final static String BASE_URL = "http://bandmoss.com";
-    public final static String HOME_URL = "http://bandmoss.com/xe";
+    public final static String HOME_URL = "http://bandmoss.com/index_mobile.html";
     public final static String NOTICE_URL = "http://bandmoss.com/xe/board_PKGm60";
     public final static String FREEBOARD_URL = "http://bandmoss.com/xe/freeboard_m";
     public final static String MEMBERBOARD_URL = "http://bandmoss.com/xe/memberboard_m";
